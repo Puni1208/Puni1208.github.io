@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>车流量监控</title>
+    <title>实时车流量监控</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { margin: 0; padding: 5px; }
+        body { 
+            margin: 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+        }
         .chart-container {
-            position: relative;
             width: 100%;
             height: 100%;
+            min-height: 300px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -20,102 +27,129 @@
     <script>
         // 初始化图表
         const ctx = document.getElementById('trafficChart').getContext('2d');
-        const trafficChart = new Chart(ctx, {
+        const chart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: [],  // 时间标签
+                labels: [],
                 datasets: [
                     {
                         label: '东西方向',
                         data: [],
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        borderColor: '#FF6384',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
                         borderWidth: 2,
-                        tension: 0.1
+                        tension: 0.3,
+                        pointRadius: 2,
+                        fill: true
                     },
                     {
                         label: '西东方向',
                         data: [],
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderColor: '#36A2EB',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
                         borderWidth: 2,
-                        tension: 0.1
+                        tension: 0.3,
+                        pointRadius: 2,
+                        fill: true
                     },
                     {
                         label: '南北方向',
                         data: [],
-                        borderColor: 'rgba(255, 206, 86, 1)',
-                        backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                        borderColor: '#FFCE56',
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
                         borderWidth: 2,
-                        tension: 0.1
+                        tension: 0.3,
+                        pointRadius: 2,
+                        fill: true
                     },
                     {
                         label: '北南方向',
                         data: [],
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        borderColor: '#4BC0C0',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         borderWidth: 2,
-                        tension: 0.1
+                        tension: 0.3,
+                        pointRadius: 2,
+                        fill: true
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: {
+                    duration: 0 // 禁用动画提高性能
+                },
                 scales: {
                     y: {
-                        beginAtZero: true,
+                        min: 0,
+                        max: 20,
                         title: {
                             display: true,
-                            text: '车流量'
+                            text: '车流量 (辆/分钟)',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
                         }
                     },
                     x: {
                         title: {
                             display: true,
-                            text: '时间'
+                            text: '时间',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: false
                         }
                     }
                 },
                 plugins: {
                     legend: {
-                        position: 'top'
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 20,
+                            usePointStyle: true
+                        }
                     },
                     tooltip: {
                         mode: 'index',
                         intersect: false
                     }
                 },
-                hover: {
+                interaction: {
                     mode: 'nearest',
-                    intersect: true
+                    axis: 'x',
+                    intersect: false
                 }
             }
         });
 
-        // App Inventor调用的更新函数
-        function updateTrafficChart(time, ew, we, ns, sn) {
-            // 添加新数据点
-            trafficChart.data.labels.push(time);
-            trafficChart.data.datasets[0].data.push(ew);
-            trafficChart.data.datasets[1].data.push(we);
-            trafficChart.data.datasets[2].data.push(ns);
-            trafficChart.data.datasets[3].data.push(sn);
+        // 更新图表函数
+        function updateChart(time, ew, we, ns, sn) {
+            // 添加新数据
+            chart.data.labels.push(time);
+            chart.data.datasets[0].data.push(ew);
+            chart.data.datasets[1].data.push(we);
+            chart.data.datasets[2].data.push(ns);
+            chart.data.datasets[3].data.push(sn);
             
-            // 限制数据量(保留最近60个点)
-            if(trafficChart.data.labels.length > 60) {
-                trafficChart.data.labels.shift();
-                trafficChart.data.datasets.forEach(dataset => {
+            // 移除旧数据保持滚动效果
+            if(chart.data.labels.length > 60) {
+                chart.data.labels.shift();
+                chart.data.datasets.forEach(dataset => {
                     dataset.data.shift();
                 });
             }
             
-            // 更新图表
-            trafficChart.update();
+            // 平滑更新图表
+            chart.update('quiet');
         }
-        
-        // 初始化空图表
-        updateTrafficChart("", 0, 0, 0, 0);
     </script>
 </body>
 </html>
